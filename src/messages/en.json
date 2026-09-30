@@ -1,0 +1,77 @@
+{
+ "brand": "ProLink",
+ "nav": {
+  "find": "Find a Handyman",
+  "categories": "Categories",
+  "become": "Become a Handyman",
+  "signin": "Sign In",
+  "start": "Get Started"
+ },
+ "hero": {
+  "title": "Find the right handyman for the job.",
+  "sub": "Find local professionals across Georgia and filter by service, city, and price.",
+  "placeholder": "Name or service (e.g. Welder)",
+  "search": "Search",
+  "allCities": "All cities",
+  "allCats": "All categories",
+  "allSubs": "All subcategories",
+  "minPrice": "Min ₾",
+  "maxPrice": "Max ₾"
+ },
+ "vip": {
+  "title": "VIP Handymen",
+  "sub": "Featured professionals offering services in your area."
+ },
+ "cats": {
+  "title": "Browse by category"
+ },
+ "profile": {
+  "portfolio": "Portfolio",
+  "schedule": "Availability",
+  "free": "Free",
+  "busy": "Busy",
+  "from": "From",
+  "contact": "Contact",
+  "jobs": "jobs",
+  "results": "results",
+  "none": "No handymen found."
+ },
+ "auth": {
+  "customer": "Customer",
+  "handyman": "Handyman",
+  "firstName": "First name",
+  "lastName": "Last name",
+  "phoneOrEmail": "Phone or email",
+  "password": "Password",
+  "profession": "Profession",
+  "subcategory": "Subcategory",
+  "city": "City",
+  "email": "Email",
+  "mobile": "Mobile",
+  "signup": "Create account",
+  "signin": "Sign in",
+  "signupTitle": "Sign up",
+  "signinTitle": "Sign in",
+  "noAcc": "No account?",
+  "haveAcc": "Have an account?",
+  "ok": "Submitted (backend stub)",
+  "exists": "Account already exists",
+  "invalid": "Wrong login or password",
+  "error": "Something went wrong"
+ },
+ "chat": {
+  "title": "AI Assistant",
+  "hello": "Hi! Tell me what you need fixed and I'll find a handyman.",
+  "placeholder": "Describe your problem...",
+  "send": "Send"
+ },
+ "days": [
+  "Mon",
+  "Tue",
+  "Wed",
+  "Thu",
+  "Fri",
+  "Sat",
+  "Sun"
+ ]
+}

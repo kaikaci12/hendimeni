@@ -1,0 +1,10 @@
+import ka from "@/messages/ka.json";
+import en from "@/messages/en.json";
+export const locales = ["ka", "en"] as const;
+export type Locale = (typeof locales)[number];
+export const defaultLocale: Locale = "ka";
+export type Dict = typeof en;
+const dicts: Record<Locale, Dict> = { ka, en };
+export const getDict = (l: string): Dict => dicts[(locales as readonly string[]).includes(l) ? (l as Locale) : defaultLocale];
+export type L10n = { ka: string; en: string };
+export const tr = (v: L10n, l: string) => (l === "en" ? v.en : v.ka);
