@@ -16,7 +16,7 @@ const updateSchema = z
       .pipe(z.string().regex(/^\+?\d{9,15}$/))
       .optional(),
     categoryId: z.string().optional(),
-    subcategory: z.string().optional(),
+    subcategories: z.array(z.string()).min(1).max(30).optional(),
     city: z.string().optional(),
     bio: z.string().max(500).optional(),
     price: z.number().int().min(0).max(99999).optional(),
@@ -25,8 +25,8 @@ const updateSchema = z
     if (d.categoryId) {
       const cat = categories.find((c) => c.id === d.categoryId);
       if (!cat) ctx.addIssue({ code: "custom", path: ["categoryId"], message: "invalid category" });
-      else if (d.subcategory && !cat.subs.includes(d.subcategory))
-        ctx.addIssue({ code: "custom", path: ["subcategory"], message: "invalid subcategory" });
+      else if (d.subcategories?.some((sub) => !cat.subs.includes(sub)))
+        ctx.addIssue({ code: "custom", path: ["subcategories"], message: "invalid subcategory" });
     }
     if (d.city && !cities.some((c) => c.id === d.city))
       ctx.addIssue({ code: "custom", path: ["city"], message: "invalid city" });
@@ -75,7 +75,7 @@ export async function PATCH(req: NextRequest) {
   if (d.phone !== undefined) userUpdate.phone = d.phone;
 
   if (d.categoryId) profileUpdate.categoryId = d.categoryId;
-  if (d.subcategory) profileUpdate.subcategory = d.subcategory;
+  if (d.subcategories) profileUpdate.subcategories = { deleteMany: {}, create: d.subcategories.map((subcategoryId) => ({ subcategoryId })) };
   if (d.city) profileUpdate.city = d.city;
   if (d.bio !== undefined) profileUpdate.bio = d.bio;
   if (d.price !== undefined) profileUpdate.price = d.price;

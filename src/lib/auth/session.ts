@@ -17,7 +17,7 @@ export async function getSession(): Promise<SessionPayload | null> {
 export async function getCurrentUser() {
   const s = await getSession();
   if (!s) return null;
-  return prisma.user.findUnique({ where: { id: s.sub }, select: { id: true, firstName: true, lastName: true, email: true, phone: true, role: true, handyman: { select: { id: true, categoryId: true, subcategory: true, city: true, bio: true, photoUrl: true, price: true, isVip: true } } } });
+  return prisma.user.findUnique({ where: { id: s.sub }, select: { id: true, firstName: true, lastName: true, email: true, phone: true, role: true, handyman: { select: { id: true, categoryId: true, subcategories: true, portfolio: true, city: true, bio: true, photoUrl: true, price: true, isVip: true } } } });
 }
 /** Server components: redirect to sign-in / home if not allowed. */
 export async function requirePageRole(locale: string, ...roles: Role[]) {

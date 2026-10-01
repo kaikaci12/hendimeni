@@ -26,10 +26,10 @@ export default function HandymanCard({ h, locale, t }: { h: HandymanListing; loc
           <h3 className="font-bold">{h.firstName} {h.lastName}</h3>
           <p className="text-xs text-text-muted">{cat ? tr(cat.name, locale) : h.categoryId} · {city ? tr(city, locale) : h.city}</p>
         </div>
-        <p className="line-clamp-2 text-xs text-text-secondary">{h.subcategory}</p>
+        <p className="line-clamp-2 text-xs text-text-secondary">{h.subcategories.join(" · ")}</p>
       </div>
       <div className="mt-4 flex items-end justify-between border-t border-border-subtle pt-4">
-        <div><span className="text-xs text-text-muted">{t.profile.from}</span><p className="text-lg font-bold">{h.price} ₾</p></div>
+        <div><span className="text-xs text-text-muted">{t.profile.from}</span><p className="text-lg font-bold">{h.price} ₾ / m²</p></div>
         <Link href={`/${locale}/handyman/${h.id}`} className="rounded-lg border border-border-subtle bg-bg-main px-4 py-2 text-xs font-semibold hover:bg-soft-blue hover:text-primary-blue">→</Link>
       </div>
     </div>

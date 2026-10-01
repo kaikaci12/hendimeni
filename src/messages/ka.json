@@ -15,8 +15,8 @@
   "allCities": "ყველა ქალაქი",
   "allCats": "ყველა კატეგორია",
   "allSubs": "ყველა ქვეკატეგორია",
-  "minPrice": "მინ. ₾",
-  "maxPrice": "მაქს. ₾"
+  "minPrice": "მინ. ₾ / მ²",
+  "maxPrice": "მაქს. ₾ / მ²"
  },
  "vip": {
   "title": "VIP ხელოსნები",

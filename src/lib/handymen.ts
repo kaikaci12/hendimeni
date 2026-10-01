@@ -17,7 +17,8 @@ export type HandymanListing = {
   firstName: string;
   lastName: string;
   categoryId: string;
-  subcategory: string;
+  subcategories: string[];
+  portfolio: string[];
   city: string;
   bio: string | null;
   photoUrl: string | null;
@@ -29,7 +30,8 @@ function listing(row: {
   id: string;
   userId: string;
   categoryId: string;
-  subcategory: string;
+  subcategories: { subcategoryId: string }[];
+  portfolio: { url: string }[];
   city: string;
   bio: string | null;
   photoUrl: string | null;
@@ -43,7 +45,8 @@ function listing(row: {
     firstName: row.user.firstName,
     lastName: row.user.lastName,
     categoryId: row.categoryId,
-    subcategory: row.subcategory,
+    subcategories: row.subcategories.map((s) => s.subcategoryId),
+    portfolio: row.portfolio.map((p) => p.url),
     city: row.city,
     bio: row.bio,
     photoUrl: row.photoUrl,
@@ -58,7 +61,7 @@ export async function searchHandymen(filters: Filters = {}): Promise<HandymanLis
   const rows = await prisma.handymanProfile.findMany({
     where: {
       ...(filters.category ? { categoryId: filters.category } : {}),
-      ...(filters.sub ? { subcategory: { contains: filters.sub, mode: "insensitive" as const } } : {}),
+      ...(filters.sub ? { subcategories: { some: { subcategoryId: { contains: filters.sub, mode: "insensitive" as const } } } } : {}),
       ...(filters.city ? { city: filters.city } : {}),
       ...(filters.vip !== undefined ? { isVip: filters.vip } : {}),
       ...(filters.minPrice !== undefined || filters.maxPrice !== undefined
@@ -83,7 +86,7 @@ export async function searchHandymen(filters: Filters = {}): Promise<HandymanLis
                 OR: [
                   { user: { firstName: { contains: term, mode: "insensitive" as const } } },
                   { user: { lastName: { contains: term, mode: "insensitive" as const } } },
-                  { subcategory: { contains: term, mode: "insensitive" as const } },
+                  { subcategories: { some: { subcategoryId: { contains: term, mode: "insensitive" as const } } } },
                   { categoryId: { in: matchingCategoryIds } },
                   { city: { contains: term, mode: "insensitive" as const } },
                 ],
@@ -92,7 +95,7 @@ export async function searchHandymen(filters: Filters = {}): Promise<HandymanLis
           }
         : {}),
     },
-    include: { user: { select: { firstName: true, lastName: true } } },
+    include: { user: { select: { firstName: true, lastName: true } }, subcategories: true, portfolio: true },
     orderBy: [{ isVip: "desc" }, { price: "asc" }],
     take: 100,
   });
@@ -103,7 +106,7 @@ export async function searchHandymen(filters: Filters = {}): Promise<HandymanLis
 export async function getFeaturedHandymen(limit = 4): Promise<HandymanListing[]> {
   const rows = await prisma.handymanProfile.findMany({
     where: { isVip: true },
-    include: { user: { select: { firstName: true, lastName: true } } },
+    include: { user: { select: { firstName: true, lastName: true } }, subcategories: true, portfolio: true },
     orderBy: { price: "asc" },
     take: limit,
   });
@@ -113,7 +116,7 @@ export async function getFeaturedHandymen(limit = 4): Promise<HandymanListing[]>
 export async function getHandyman(id: string): Promise<HandymanListing | null> {
   const row = await prisma.handymanProfile.findFirst({
     where: { OR: [{ id }, { userId: id }] },
-    include: { user: { select: { firstName: true, lastName: true } } },
+    include: { user: { select: { firstName: true, lastName: true } }, subcategories: true, portfolio: true },
   });
   return row ? listing(row) : null;
 }

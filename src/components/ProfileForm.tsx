@@ -16,7 +16,8 @@ type HandymanData = {
   handyman: {
     id: string;
     categoryId: string;
-    subcategory: string;
+    subcategories: { subcategoryId: string }[];
+    portfolio: { id: string; url: string }[];
     city: string;
     bio: string | null;
     photoUrl: string | null;
@@ -28,6 +29,7 @@ type HandymanData = {
 export default function ProfileForm({ locale, t }: { locale: string; t: Dict }) {
   const router = useRouter();
   const fileRef = useRef<HTMLInputElement>(null);
+  const portfolioRef = useRef<HTMLInputElement>(null);
   const [data, setData] = useState<HandymanData | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -40,7 +42,10 @@ export default function ProfileForm({ locale, t }: { locale: string; t: Dict }) 
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [categoryId, setCategoryId] = useState("");
-  const [subcategory, setSubcategory] = useState("");
+  const [subcategories, setSubcategories] = useState<string[]>([]);
+  const [portfolio, setPortfolio] = useState<{ id: string; url: string }[]>([]);
+  const [showPlanModal, setShowPlanModal] = useState(false);
+  const [plan, setPlan] = useState<"plus" | "vip">("plus");
   const [city, setCity] = useState("");
   const [bio, setBio] = useState("");
   const [price, setPrice] = useState(0);
@@ -61,7 +66,8 @@ export default function ProfileForm({ locale, t }: { locale: string; t: Dict }) 
       setEmail(d.email || "");
       setPhone(d.phone || "");
       setCategoryId(d.handyman?.categoryId || categories[0].id);
-      setSubcategory(d.handyman?.subcategory || "");
+      setSubcategories(d.handyman?.subcategories.map((s) => s.subcategoryId) || []);
+      setPortfolio(d.handyman?.portfolio || []);
       setCity(d.handyman?.city || "");
       setBio(d.handyman?.bio || "");
       setPrice(d.handyman?.price || 0);
@@ -107,6 +113,22 @@ export default function ProfileForm({ locale, t }: { locale: string; t: Dict }) 
     }
   }
 
+  async function handlePortfolioUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(e.target.files ?? []);
+    if (!files.length) return;
+    setUploading(true);
+    try {
+      for (const file of files) {
+        const fd = new FormData(); fd.append("photo", file);
+        const res = await fetch("/api/profile/portfolio", { method: "POST", body: fd });
+        if (!res.ok) throw new Error("upload");
+        const image = await res.json(); setPortfolio((current) => [...current, image]);
+      }
+      setMsg({ type: "ok", text: pT("portfolioUploaded") });
+    } catch { setMsg({ type: "err", text: pT("error") }); }
+    finally { setUploading(false); e.target.value = ""; }
+  }
+
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true);
@@ -121,7 +143,7 @@ export default function ProfileForm({ locale, t }: { locale: string; t: Dict }) 
           email: email || undefined,
           phone: phone || undefined,
           categoryId,
-          subcategory,
+          subcategories,
           city,
           bio,
           price,
@@ -138,6 +160,7 @@ export default function ProfileForm({ locale, t }: { locale: string; t: Dict }) 
       const updated: HandymanData = await res.json();
       setData(updated);
       setMsg({ type: "ok", text: pT("saved") });
+      setShowPlanModal(true);
       router.refresh();
     } catch {
       setMsg({ type: "err", text: pT("error") });
@@ -158,7 +181,7 @@ export default function ProfileForm({ locale, t }: { locale: string; t: Dict }) 
         professionInfo: "პროფესიული ინფორმაცია",
         bioLabel: "ჩემს შესახებ",
         bioPlaceholder: "მოკლედ აღწერეთ თქვენი გამოცდილება...",
-        priceLabel: "ფასი (₾)",
+        priceLabel: "ფასი 1 მ²-ზე (ლარი)",
         save: "შენახვა",
         saving: "ინახება...",
         saved: "წარმატებით შეინახა!",
@@ -178,7 +201,7 @@ export default function ProfileForm({ locale, t }: { locale: string; t: Dict }) 
         professionInfo: "Professional Information",
         bioLabel: "About Me",
         bioPlaceholder: "Briefly describe your experience...",
-        priceLabel: "Price (₾)",
+        priceLabel: "Price per square meter (GEL / 1 m²)",
         save: "Save Changes",
         saving: "Saving...",
         saved: "Saved successfully!",
@@ -188,9 +211,20 @@ export default function ProfileForm({ locale, t }: { locale: string; t: Dict }) 
         photoTooLarge: "Photo is too large (max 5MB)",
         logout: "Log out",
         back: "Home",
+        portfolioUploaded: "Portfolio photos uploaded",
+        portfolioHelp: "Show customers examples of your previous work.",
+        addPortfolio: "Add work photos",
+        plansTitle: "Choose your service",
+        plansSubtitle: "Your profile details are saved. Select a plan to continue.",
+        plusPrice: "First month free, then 5 GEL per month.",
+        vipBenefit: "VIP ads appear first in search results.",
+        paymentLater: "Payments will be connected later. No charge is made now.",
+        later: "Decide later",
+        continue: "Continue",
+        vipLater: "VIP selection will be available when payments are connected.",
       },
     };
-    return (map[locale] || map.en)[key] || key;
+    return (map[locale] || map.en)[key] || map.en[key] || key;
   }
 
   const currentCat = categories.find((c) => c.id === categoryId);
@@ -378,7 +412,7 @@ export default function ProfileForm({ locale, t }: { locale: string; t: Dict }) 
                   onChange={(e) => {
                     setCategoryId(e.target.value);
                     const cat = categories.find((c) => c.id === e.target.value);
-                    if (cat) setSubcategory(cat.subs[0]);
+                    if (cat) setSubcategories([]);
                   }}
                   className={inp}
                 >
@@ -391,17 +425,9 @@ export default function ProfileForm({ locale, t }: { locale: string; t: Dict }) 
               </div>
               <div>
                 <label className={label}>{t.auth.subcategory}</label>
-                <select
-                  value={subcategory}
-                  onChange={(e) => setSubcategory(e.target.value)}
-                  className={inp}
-                >
-                  {currentCat?.subs.map((s) => (
-                    <option key={s} value={s}>
-                      {s}
-                    </option>
-                  ))}
-                </select>
+                <div className="max-h-48 space-y-2 overflow-y-auto rounded-xl border border-primary-border p-3">
+                  {currentCat?.subs.map((s) => <label key={s} className="flex items-center gap-2 text-sm"><input type="checkbox" checked={subcategories.includes(s)} onChange={(e) => setSubcategories((old) => e.target.checked ? [...old, s] : old.filter((v) => v !== s))} />{s}</label>)}
+                </div>
               </div>
               <div>
                 <label className={label}>{t.auth.city}</label>
@@ -425,6 +451,7 @@ export default function ProfileForm({ locale, t }: { locale: string; t: Dict }) 
                   onChange={(e) => setPrice(Number(e.target.value))}
                   min={0}
                   max={99999}
+                  aria-label={pT("priceLabel")}
                   className={inp}
                 />
               </div>
@@ -445,6 +472,14 @@ export default function ProfileForm({ locale, t }: { locale: string; t: Dict }) 
             </div>
           </div>
 
+          <section className="rounded-2xl border border-border-subtle bg-white p-6 shadow-card">
+            <h2 className="mb-2 text-lg font-bold">{t.profile.portfolio}</h2>
+            <p className="mb-4 text-sm text-text-muted">{pT("portfolioHelp")}</p>
+            <input ref={portfolioRef} type="file" accept="image/*" multiple className="hidden" onChange={handlePortfolioUpload} />
+            <button type="button" disabled={uploading} onClick={() => portfolioRef.current?.click()} className="rounded-xl bg-soft-blue px-4 py-2 text-sm font-semibold text-primary-blue">{pT("addPortfolio")}</button>
+            <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">{portfolio.map((image) => <img key={image.id} src={image.url} alt={t.profile.portfolio} className="aspect-square w-full rounded-xl object-cover" />)}</div>
+          </section>
+
           {/* Save button */}
           <button
             type="submit"
@@ -455,6 +490,7 @@ export default function ProfileForm({ locale, t }: { locale: string; t: Dict }) 
           </button>
         </form>
       </div>
+      {showPlanModal && <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" role="dialog" aria-modal="true"><div className="w-full max-w-lg space-y-5 rounded-2xl bg-white p-6 shadow-xl"><div><h2 className="text-2xl font-bold">{pT("plansTitle")}</h2><p className="mt-1 text-sm text-text-muted">{pT("plansSubtitle")}</p></div><div className="grid gap-3 sm:grid-cols-2"><button type="button" onClick={() => setPlan("plus")} className={`rounded-xl border p-4 text-left ${plan === "plus" ? "border-primary-blue bg-soft-blue" : "border-border-subtle"}`}><b>Handyman PLUS</b><p className="mt-2 text-sm">{pT("plusPrice")}</p></button><button type="button" onClick={() => setPlan("vip")} className={`rounded-xl border p-4 text-left ${plan === "vip" ? "border-primary-blue bg-soft-blue" : "border-border-subtle"}`}><b>VIP</b><p className="mt-2 text-sm">{pT("vipBenefit")}</p></button></div><p className="text-xs text-text-muted">{pT("paymentLater")}</p><div className="flex justify-end gap-3"><button type="button" onClick={() => setShowPlanModal(false)} className="rounded-xl border px-4 py-2">{pT("later")}</button><button type="button" onClick={() => setShowPlanModal(false)} className="rounded-xl bg-primary-blue px-4 py-2 font-semibold text-white">{pT("continue")}</button></div></div></div>}
     </main>
   );
 }

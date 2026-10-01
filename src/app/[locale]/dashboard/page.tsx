@@ -21,7 +21,7 @@ export default async function Dashboard({ params }: { params: Promise<{ locale: 
             <p className="text-text-secondary">{user.email ?? user.phone}</p>
             {user.handyman && (
               <p className="text-text-secondary">
-                {user.handyman.subcategory} · {user.handyman.city}
+                {user.handyman.subcategories.map((s) => s.subcategoryId).join(" · ")} · {user.handyman.city}
               </p>
             )}
           </div>

@@ -21,7 +21,7 @@ export async function POST(req: Request) {
         firstName: d.firstName, lastName: d.lastName, ...contact,
         passwordHash: await hashPassword(d.password),
         role: d.role === "handyman" ? "HANDYMAN" : "CUSTOMER", // role is never taken from client as ADMIN
-        ...(d.role === "handyman" && { handyman: { create: { categoryId: d.category, subcategory: d.sub, city: d.city } } }),
+        ...(d.role === "handyman" && { handyman: { create: { categoryId: d.category, city: d.city, subcategories: { create: d.subcategories.map((subcategoryId) => ({ subcategoryId })) } } } }),
       },
       select: { id: true, firstName: true, lastName: true, role: true },
     });

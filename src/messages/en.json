@@ -15,8 +15,8 @@
   "allCities": "All cities",
   "allCats": "All categories",
   "allSubs": "All subcategories",
-  "minPrice": "Min ₾",
-  "maxPrice": "Max ₾"
+  "minPrice": "Min ₾ / m²",
+  "maxPrice": "Max ₾ / m²"
  },
  "vip": {
   "title": "VIP Handymen",

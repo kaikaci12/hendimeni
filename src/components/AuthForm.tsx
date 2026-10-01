@@ -13,7 +13,9 @@ export default function AuthForm({ mode, role, locale, t }: { mode: "signin" | "
   const hm = role === "handyman";
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault(); setMsg("");
-    const data = Object.fromEntries(new FormData(e.currentTarget) as any);
+    const form = new FormData(e.currentTarget);
+    const data: any = Object.fromEntries(form as any);
+    if (hm && mode === "signup") data.subcategories = form.getAll("subcategories");
     const res = await fetch(`/api/auth/${mode === "signup" ? "register" : "login"}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ role, ...data }) });
     if (res.ok) { router.push(`/${locale}/dashboard`); router.refresh(); return; }
     const err = (await res.json().catch(() => ({}))).error;
@@ -31,7 +33,10 @@ export default function AuthForm({ mode, role, locale, t }: { mode: "signin" | "
         {mode === "signup" && <div className="grid grid-cols-2 gap-3"><input name="firstName" required placeholder={a.firstName} className={inp} /><input name="lastName" required placeholder={a.lastName} className={inp} /></div>}
         {mode === "signup" && hm && (<>
           <select name="category" value={cat} onChange={(e) => setCat(e.target.value)} className={inp} aria-label={a.profession}>{categories.map((c) => <option key={c.id} value={c.id}>{tr(c.name, locale)}</option>)}</select>
-          <select name="sub" key={cat} className={inp} aria-label={a.subcategory}>{categories.find((c) => c.id === cat)!.subs.map((s) => <option key={s}>{s}</option>)}</select>
+          <fieldset className="max-h-48 space-y-2 overflow-y-auto rounded-xl border border-primary-border p-3">
+            <legend className="px-1 text-sm font-semibold">{a.subcategory} (choose all that apply)</legend>
+            {categories.find((c) => c.id === cat)!.subs.map((s) => <label key={s} className="flex items-center gap-2 text-sm"><input type="checkbox" name="subcategories" value={s} />{s}</label>)}
+          </fieldset>
           <select name="city" className={inp} aria-label={a.city}>{cities.map((c) => <option key={c.id} value={c.id}>{tr(c, locale)}</option>)}</select>
         </>)}
         {hm && mode === "signup" ? (<><input name="email" type="email" required placeholder={a.email} className={inp} /><input name="phone" type="tel" required placeholder={a.mobile} className={inp} /></>) : <input name="login" required placeholder={a.phoneOrEmail} className={inp} />}

@@ -31,13 +31,32 @@ model HandymanProfile {
   userId      String  @unique
   user        User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   categoryId  String
-  subcategory String
   city        String
   bio         String?
   photoUrl    String?
   price       Int     @default(0)
   isVip       Boolean @default(false)
+  subcategories HandymanSubcategory[]
+  portfolio   PortfolioImage[]
 
   @@index([categoryId, city])
 }
 
+model HandymanSubcategory {
+  handymanProfileId String
+  subcategoryId     String
+  handymanProfile   HandymanProfile @relation(fields: [handymanProfileId], references: [id], onDelete: Cascade)
+
+  @@id([handymanProfileId, subcategoryId])
+  @@index([subcategoryId])
+}
+
+model PortfolioImage {
+  id                String @id @default(cuid())
+  handymanProfileId String
+  url               String
+  createdAt         DateTime @default(now())
+  handymanProfile   HandymanProfile @relation(fields: [handymanProfileId], references: [id], onDelete: Cascade)
+
+  @@index([handymanProfileId, createdAt])
+}

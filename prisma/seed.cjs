@@ -10,7 +10,7 @@ const examples = [
     firstName: "Giorgi",
     lastName: "Kapanadze",
     categoryId: "welder",
-    subcategory: "ელექტრო შედუღება",
+    subcategories: ["ელექტრო შედუღება"],
     city: "tbilisi",
     bio: "Experienced welder for gates, fences, and custom metalwork.",
     price: 80,
@@ -21,7 +21,7 @@ const examples = [
     firstName: "Nino",
     lastName: "Maisuradze",
     categoryId: "tile",
-    subcategory: "კედლის ფილების დაგება (აბაზანა, სამზარეულო)",
+    subcategories: ["კედლის ფილების დაგება (აბაზანა, სამზარეულო)"],
     city: "batumi",
     bio: "Bathroom and kitchen tiling, careful surface preparation, and grouting.",
     price: 65,
@@ -32,7 +32,7 @@ const examples = [
     firstName: "Davit",
     lastName: "Tsereteli",
     categoryId: "ac",
-    subcategory: "კონდიციონერის მონტაჟი",
+    subcategories: ["კონდიციონერის მონტაჟი"],
     city: "tbilisi",
     bio: "Air conditioner installation and maintenance for homes and small offices.",
     price: 100,
@@ -43,7 +43,7 @@ const examples = [
     firstName: "Levan",
     lastName: "Beridze",
     categoryId: "handyman",
-    subcategory: "წვრილმანი სარემონტო სამუშაოები",
+    subcategories: ["წვრილმანი სარემონტო სამუშაოები"],
     city: "kutaisi",
     bio: "Small home repairs, furniture assembly, and practical installation work.",
     price: 45,
@@ -54,7 +54,7 @@ const examples = [
     firstName: "Mariam",
     lastName: "Chikovani",
     categoryId: "locksmith",
-    subcategory: "კარის საკეტის მონტაჟი-შეცვლა",
+    subcategories: ["კარის საკეტის მონტაჟი-შეცვლა"],
     city: "rustavi",
     bio: "Door lock replacement and installation, with clear pricing before work begins.",
     price: 50,
@@ -65,7 +65,7 @@ const examples = [
     firstName: "Zurab",
     lastName: "Gabunia",
     categoryId: "auto",
-    subcategory: "ავტო ელექტრიკოსი",
+    subcategories: ["ავტო ელექტრიკოსი"],
     city: "gori",
     bio: "Automotive electrical diagnostics and repairs for common vehicle faults.",
     price: 70,
@@ -75,7 +75,9 @@ const examples = [
 
 async function main() {
   for (const example of examples) {
-    const { email, firstName, lastName, ...profile } = example;
+    const { email, firstName, lastName, subcategories, ...profile } = example;
+    const createProfile = { ...profile, subcategories: { create: subcategories.map((subcategoryId) => ({ subcategoryId })) } };
+    const updateProfile = { ...profile, subcategories: { deleteMany: {}, create: subcategories.map((subcategoryId) => ({ subcategoryId })) } };
     const passwordHash = await bcrypt.hash(randomBytes(32).toString("hex"), 12);
 
     await prisma.user.upsert({
@@ -86,8 +88,8 @@ async function main() {
         role: "HANDYMAN",
         handyman: {
           upsert: {
-            create: profile,
-            update: profile,
+            create: createProfile,
+            update: updateProfile,
           },
         },
       },
@@ -97,7 +99,7 @@ async function main() {
         lastName,
         role: "HANDYMAN",
         passwordHash,
-        handyman: { create: profile },
+        handyman: { create: createProfile },
       },
     });
   }
